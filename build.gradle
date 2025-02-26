@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'me.piggyster.datamaster.Main'
+        )
+    }
+}
+
+shadowJar {
+    manifest {
+        attributes(
+                'Main-Class': 'me.piggyster.datamaster.Main'
+        )
+    }
+}
+
+group = 'me.piggyster.datamaster'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.google.code.gson:gson:2.12.1'
+    implementation("com.google.guava:guava:33.4.0-jre")
+    implementation 'org.mongodb:mongodb-driver-sync:5.3.0'
+}
