@@ -91,6 +91,19 @@ public class DataMaster {
         return getAsyncData(uuid, key, TypeToken.of(clazz));
     }
 
+    public <K, V> CompletableFuture<Map<K, V>> getMapAsync(UUID uuid, String path, TypeToken<K> keyToken, TypeToken<V> valueToken) {
+        return CompletableFuture.supplyAsync(() -> {
+            Set<String> keys = getKeys(uuid, path).join();
+            Map<K, V> map = new HashMap<>();
+            keys.forEach(key -> {
+                K formattedKey = gson.fromJson(gson.toJsonTree(key), keyToken.getType());
+                V value = getAsyncData(uuid, path + "." + key, valueToken).join();
+                map.put(formattedKey, value);
+            });
+            return map;
+        });
+    }
+
     public void setData(UUID uuid, String key, Object value) {
         storage.setData(uuid, key, value);
     }

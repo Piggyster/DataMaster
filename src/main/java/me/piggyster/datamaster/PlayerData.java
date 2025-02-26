@@ -64,16 +64,11 @@ public class PlayerData {
     }
 
     public <K, V> CompletableFuture<Map<K, V>> getMapAsync(String path, TypeToken<K> keyToken, TypeToken<V> valueToken) {
-        return CompletableFuture.supplyAsync(() -> {
-            Set<String> keys = dataMaster.getKeys(uuid, path).join();
-            Map<K, V> map = new HashMap<>();
-            keys.forEach(key -> {
-                K formattedKey = dataMaster.gson.fromJson(dataMaster.gson.toJsonTree(key), keyToken.getType());
-                V value = getAsync(path + "." + key, valueToken).join();
-                map.put(formattedKey, value);
-            });
-            return map;
-        });
+        return dataMaster.getMapAsync(uuid, path, keyToken, valueToken);
+    }
+
+    public <K, V> CompletableFuture<Map<K, V>> getMapAsync(String path, Class<K> keyClass, Class<V> tokenClass) {
+        return getMapAsync(path, TypeToken.of(keyClass), TypeToken.of(tokenClass));
     }
 
     public <K, V> Map<K, V> getMapSync(String path, TypeToken<K> keyToken, TypeToken<V> valueToken) {
@@ -88,6 +83,10 @@ public class PlayerData {
             }
         });
         return map;
+    }
+
+    public <K, V> Map<K, V> getMapSync(String path, Class<K> keyClass, Class<V> valueClass) {
+        return getMapSync(path, TypeToken.of(keyClass), TypeToken.of(valueClass));
     }
 
     public void set(String key, Object value) {
