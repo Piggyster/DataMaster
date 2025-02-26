@@ -1,8 +1,6 @@
 package me.piggyster.datamaster;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
+import com.google.common.reflect.TypeToken;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
@@ -38,7 +36,7 @@ public class MongoDBStorage extends AbstractStorage {
                 1, 1, TimeUnit.MINUTES);
     }
 
-    private <T> T extractValue(Document document, String key, TypeToken<T> type) {
+    private <T> T extractValue(Document document, String key, TypeToken<T> token) {
         String[] keys = key.split("\\.");
         if(document == null) return null;
         for(int i = 0; i < keys.length - 1; i++) {
@@ -46,7 +44,7 @@ public class MongoDBStorage extends AbstractStorage {
             if(document == null) return null;
         }
         Object object = document.get(keys[keys.length - 1]);
-        return gson.fromJson(gson.toJsonTree(object), type);
+        return gson.fromJson(gson.toJsonTree(object), token.getType());
     }
 
     private Document extractDocument(Document document, String key) {
@@ -59,13 +57,13 @@ public class MongoDBStorage extends AbstractStorage {
     }
 
     @Override
-    public <T> CompletableFuture<T> getAsyncData(UUID uuid, String key, TypeToken<T> type) {
+    public <T> CompletableFuture<T> getAsyncData(UUID uuid, String key, TypeToken<T> token) {
         return CompletableFuture.supplyAsync(() -> {
             if(cache.containsKey(key)) {
-                return gson.fromJson(gson.toJsonTree(cache.get(key).getValue()), type);
+                return gson.fromJson(gson.toJsonTree(cache.get(key).getValue()), token.getType());
             }
             Document playerDocument = collection.find(Filters.eq("_id", uuid)).first();
-            T value = extractValue(playerDocument, key, type);
+            T value = extractValue(playerDocument, key, token);
             if(value != null) {
                 cache.put(uuid + "." + key, new CacheEntry(value, 3));
             } else {

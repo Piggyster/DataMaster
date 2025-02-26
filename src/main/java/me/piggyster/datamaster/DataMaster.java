@@ -2,9 +2,9 @@ package me.piggyster.datamaster;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -67,7 +67,7 @@ public class DataMaster {
     public <T> T getDefaultValue(String key, TypeToken<T> type) {
         Object value = defaultValueRegistry.get(key);
         if(value == null) return null;
-        return gson.fromJson(gson.toJsonTree(value), type);
+        return gson.fromJson(gson.toJsonTree(value), type.getType());
     }
 
     public Map<String, Object> getDefaultValues() {
@@ -75,7 +75,7 @@ public class DataMaster {
     }
 
     public <T> T getDefaultValue(String key, Class<T> clazz) {
-        return getDefaultValue(key, TypeToken.get(clazz));
+        return getDefaultValue(key, TypeToken.of(clazz));
     }
 
     public <T> CompletableFuture<T> getAsyncData(UUID uuid, String key, TypeToken<T> type) {
@@ -88,16 +88,8 @@ public class DataMaster {
     }
 
     public <T> CompletableFuture<T> getAsyncData(UUID uuid, String key, Class<T> clazz) {
-        return getAsyncData(uuid, key, TypeToken.get(clazz));
+        return getAsyncData(uuid, key, TypeToken.of(clazz));
     }
-
-    /*public <T> T getSyncData(UUID uuid, String key, TypeToken<T> type) {
-        return storage.getSyncData(uuid + "." + key, type);
-    }
-
-    public <T> T getSyncData(UUID uuid, String key, Class<T> clazz) {
-        return getSyncData(uuid, key, TypeToken.get(clazz));
-    }*/
 
     public void setData(UUID uuid, String key, Object value) {
         storage.setData(uuid, key, value);

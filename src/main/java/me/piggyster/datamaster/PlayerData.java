@@ -1,6 +1,6 @@
 package me.piggyster.datamaster;
 
-import com.google.gson.reflect.TypeToken;
+import com.google.common.reflect.TypeToken;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,16 +43,16 @@ public class PlayerData {
     }
 
 
-    public <T> T getSync(String key, TypeToken<T> type) {
+    public <T> T getSync(String key, TypeToken<T> token) {
         Object value = syncData.get(key);
         if(value == null) {
-            return dataMaster.getDefaultValue(key, type);
+            return dataMaster.getDefaultValue(key, token);
         }
-        return dataMaster.gson.fromJson(dataMaster.gson.toJsonTree(value), type);
+        return dataMaster.gson.fromJson(dataMaster.gson.toJsonTree(value), token.getType());
     }
 
     public <T> T getSync(String key, Class<T> clazz) {
-        return getSync(key, TypeToken.get(clazz));
+        return getSync(key, TypeToken.of(clazz));
     }
 
     public <T> CompletableFuture<T> getAsync(String key, TypeToken<T> type) {
@@ -60,30 +60,30 @@ public class PlayerData {
     }
 
     public <T> CompletableFuture<T> getAsync(String key, Class<T> clazz) {
-        return getAsync(key, TypeToken.get(clazz));
+        return getAsync(key, TypeToken.of(clazz));
     }
 
-    public <K, V> CompletableFuture<Map<K, V>> getMapAsync(String path, TypeToken<K> keyType, TypeToken<V> valueType) {
+    public <K, V> CompletableFuture<Map<K, V>> getMapAsync(String path, TypeToken<K> keyToken, TypeToken<V> valueToken) {
         return CompletableFuture.supplyAsync(() -> {
             Set<String> keys = dataMaster.getKeys(uuid, path).join();
             Map<K, V> map = new HashMap<>();
             keys.forEach(key -> {
-                K formattedKey = dataMaster.gson.fromJson(dataMaster.gson.toJsonTree(key), keyType);
-                V value = getAsync(path + "." + key, valueType).join();
+                K formattedKey = dataMaster.gson.fromJson(dataMaster.gson.toJsonTree(key), keyToken.getType());
+                V value = getAsync(path + "." + key, valueToken).join();
                 map.put(formattedKey, value);
             });
             return map;
         });
     }
 
-    public <K, V> Map<K, V> getMapSync(String path, TypeToken<K> keyType, TypeToken<V> valueType) {
+    public <K, V> Map<K, V> getMapSync(String path, TypeToken<K> keyToken, TypeToken<V> valueToken) {
         Map<K, V> map = new HashMap<>();
         syncData.keySet().forEach(key -> {
             if(key.startsWith(path)) {
                 int index = key.lastIndexOf(".");
                 String substring = key.substring(index + 1);
-                K formattedKey = dataMaster.gson.fromJson(dataMaster.gson.toJsonTree(substring), keyType);
-                V value = getSync(key, valueType);
+                K formattedKey = dataMaster.gson.fromJson(dataMaster.gson.toJsonTree(substring), keyToken.getType());
+                V value = getSync(key, valueToken);
                 map.put(formattedKey, value);
             }
         });
