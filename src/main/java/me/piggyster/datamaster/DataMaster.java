@@ -79,7 +79,7 @@ public class DataMaster {
     }
 
     public <T> CompletableFuture<T> getAsyncData(UUID uuid, String key, TypeToken<T> type) {
-        return storage.getASyncData(uuid, key, type).thenApply(data -> {
+        return storage.getAsyncData(uuid, key, type).thenApply(data -> {
             if(data == null) {
                 return getDefaultValue(key, type);
             }
@@ -87,17 +87,17 @@ public class DataMaster {
         });
     }
 
-    public <T> CompletableFuture<T> getASyncData(UUID uuid, String key, Class<T> clazz) {
+    public <T> CompletableFuture<T> getAsyncData(UUID uuid, String key, Class<T> clazz) {
         return getAsyncData(uuid, key, TypeToken.get(clazz));
     }
 
-    public <T> T getSyncData(UUID uuid, String key, TypeToken<T> type) {
+    /*public <T> T getSyncData(UUID uuid, String key, TypeToken<T> type) {
         return storage.getSyncData(uuid + "." + key, type);
     }
 
     public <T> T getSyncData(UUID uuid, String key, Class<T> clazz) {
         return getSyncData(uuid, key, TypeToken.get(clazz));
-    }
+    }*/
 
     public void setData(UUID uuid, String key, Object value) {
         storage.setData(uuid, key, value);

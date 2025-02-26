@@ -33,7 +33,7 @@ public class PlayerData {
                     loadSyncData(result);
                 } else {
                     //normal
-                    Object value = dataMaster.getSyncData(uuid, key, Object.class);
+                    Object value = dataMaster.getASyncData(uuid, key, Object.class).join();
                     if(value == null) continue;
                     syncData.put(key, value);
                 }

@@ -21,8 +21,7 @@ import java.util.concurrent.*;
 
 public class MongoDBStorage extends AbstractStorage {
 
-    private final Map<String, CacheEntry> cache = new ConcurrentHashMap<>(); //add custom cache object for deletion after 3-5 minutes
-    private final Gson gson = new GsonBuilder().create();
+    private final Map<String, CacheEntry> cache = new ConcurrentHashMap<>();
     private MongoCollection<Document> collection;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -37,23 +36,6 @@ public class MongoDBStorage extends AbstractStorage {
 
         cacheCleaner.scheduleAtFixedRate(() -> cache.entrySet().removeIf(entry -> entry.getValue().isExpired()),
                 1, 1, TimeUnit.MINUTES);
-    }
-
-
-    /*
-
-    Later I can possibly remove sync data getting methods, because you simply cannot practical access the database
-    sync without stopping other operations. Even loading a player's initial data when they spawn is done async
-    sync getting methods below are only different from the async methods in the fact that they do not cache
-    any values they retrieve because another class handles that.
-
-     */
-
-    @Override
-    public <T> T getSyncData(String key, TypeToken<T> type) {
-        String[] keys = key.split("\\.", 2);
-        Document playerDocument = collection.find(Filters.eq("_id", UUID.fromString(keys[0]))).first();
-        return extractValue(playerDocument, keys[1], type);
     }
 
     private <T> T extractValue(Document document, String key, TypeToken<T> type) {
@@ -77,7 +59,7 @@ public class MongoDBStorage extends AbstractStorage {
     }
 
     @Override
-    public <T> CompletableFuture<T> getASyncData(UUID uuid, String key, TypeToken<T> type) {
+    public <T> CompletableFuture<T> getAsyncData(UUID uuid, String key, TypeToken<T> type) {
         return CompletableFuture.supplyAsync(() -> {
             if(cache.containsKey(key)) {
                 return gson.fromJson(gson.toJsonTree(cache.get(key).getValue()), type);
