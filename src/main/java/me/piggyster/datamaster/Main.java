@@ -36,7 +36,7 @@ public class Main {
         data.set("coins", ++coins); //
         System.out.println("Coins: " + coins);
 
-        data.getASync("settings.volume", Integer.class).thenAccept(volume -> {
+        data.getAsync("settings.volume", Integer.class).thenAccept(volume -> {
             System.out.println("Volume: " + volume);
         });
 
@@ -45,12 +45,12 @@ public class Main {
         Set<String> keys = master.getKeys(uuid, "settings").join();
 
         keys.forEach(key -> {
-            data.getASync("settings." + key, Integer.class).thenAccept(value -> {
+            data.getAsync("settings." + key, Integer.class).thenAccept(value -> {
                 System.out.println(value);
             });
         });
 
-        Map<String, Integer> map = data.getMapASync("settings", new TypeToken<String>() {}, new TypeToken<Integer>() {}).join();
+        Map<String, Integer> map = data.getMapAsync("settings", new TypeToken<String>() {}, new TypeToken<Integer>() {}).join();
         System.out.println(map);
 
 

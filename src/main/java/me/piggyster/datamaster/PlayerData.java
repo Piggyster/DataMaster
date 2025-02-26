@@ -33,7 +33,7 @@ public class PlayerData {
                     loadSyncData(result);
                 } else {
                     //normal
-                    Object value = dataMaster.getASyncData(uuid, key, Object.class).join();
+                    Object value = dataMaster.getAsyncData(uuid, key, Object.class).join();
                     if(value == null) continue;
                     syncData.put(key, value);
                 }
@@ -55,21 +55,21 @@ public class PlayerData {
         return getSync(key, TypeToken.get(clazz));
     }
 
-    public <T> CompletableFuture<T> getASync(String key, TypeToken<T> type) {
+    public <T> CompletableFuture<T> getAsync(String key, TypeToken<T> type) {
         return dataMaster.getAsyncData(uuid, key, type);
     }
 
-    public <T> CompletableFuture<T> getASync(String key, Class<T> clazz) {
-        return getASync(key, TypeToken.get(clazz));
+    public <T> CompletableFuture<T> getAsync(String key, Class<T> clazz) {
+        return getAsync(key, TypeToken.get(clazz));
     }
 
-    public <K, V> CompletableFuture<Map<K, V>> getMapASync(String path, TypeToken<K> keyType, TypeToken<V> valueType) {
+    public <K, V> CompletableFuture<Map<K, V>> getMapAsync(String path, TypeToken<K> keyType, TypeToken<V> valueType) {
         return CompletableFuture.supplyAsync(() -> {
             Set<String> keys = dataMaster.getKeys(uuid, path).join();
             Map<K, V> map = new HashMap<>();
             keys.forEach(key -> {
                 K formattedKey = dataMaster.gson.fromJson(dataMaster.gson.toJsonTree(key), keyType);
-                V value = getASync(path + "." + key, valueType).join();
+                V value = getAsync(path + "." + key, valueType).join();
                 map.put(formattedKey, value);
             });
             return map;
