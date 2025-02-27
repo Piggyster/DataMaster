@@ -16,15 +16,18 @@ public class PlayerListener implements Listener {
 
     public PlayerListener(DataMasterPlugin plugin) {
         this.plugin = plugin;
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            DataMaster.get().loadPlayer(player.getUniqueId());
+        });
     }
 
     @EventHandler
     public void onEvent(PlayerJoinEvent event) {
         AsyncPrePlayerDataLoadEvent preLoadEvent = new AsyncPrePlayerDataLoadEvent(event.getPlayer());
-        Bukkit.getPluginManager().callEvent(preLoadEvent);
+        //Bukkit.getPluginManager().callEvent(preLoadEvent);
         DataMaster.get().loadPlayer(event.getPlayer().getUniqueId()).thenAccept(none -> {
             PostPlayerDataLoadEvent postLoadEvent = new PostPlayerDataLoadEvent(event.getPlayer());
-            Bukkit.getPluginManager().callEvent(postLoadEvent);
+            //Bukkit.getPluginManager().callEvent(postLoadEvent);
         });
     }
 

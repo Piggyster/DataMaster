@@ -7,22 +7,6 @@ java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
-jar {
-    manifest {
-        attributes(
-                'Main-Class': 'me.piggyster.datamaster.Main'
-        )
-    }
-}
-
-shadowJar {
-    manifest {
-        attributes(
-                'Main-Class': 'me.piggyster.datamaster.Main'
-        )
-    }
-}
-
 group = 'me.piggyster.datamaster'
 version = '1.0-SNAPSHOT'
 

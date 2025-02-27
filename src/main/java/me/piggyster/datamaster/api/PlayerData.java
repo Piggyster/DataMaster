@@ -1,11 +1,10 @@
 package me.piggyster.datamaster.api;
 
 import com.google.common.reflect.TypeToken;
+import me.piggyster.datamaster.api.util.DataEntry;
+import org.bukkit.Bukkit;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
@@ -13,12 +12,14 @@ public class PlayerData {
 
     private final UUID uuid;
     private final Map<String, Object> syncData = new ConcurrentHashMap<>();
+    private final Queue<DataEntry> dataQueue;
 
     private final DataMaster dataMaster;
 
     public PlayerData(UUID uuid, DataMaster dataMaster) {
         this.uuid = uuid;
         this.dataMaster = dataMaster;
+        dataQueue = new LinkedList<>();
     }
 
     public CompletableFuture<Void> loadSyncData(Set<String> keys) {
@@ -28,7 +29,6 @@ public class PlayerData {
                     //wildcard
                     String path = key.replaceAll("\\.\\*", "");
                     Set<String> result = dataMaster.getKeys(uuid, path).join();
-                    System.out.println(result);
                     result = result.stream().map(k -> path + "." + k).collect(Collectors.toSet());
                     loadSyncData(result);
                 } else {
@@ -90,12 +90,30 @@ public class PlayerData {
     }
 
     public void set(String key, Object value) {
-        dataMaster.setData(uuid, key, value);
-        if(dataMaster.isSyncField(key)) {
-            syncData.put(key, value);
-        }
+        set(key, value, false);
+    }
 
-        //add a saving mechanism to do batch updates instead of constant ones
+    public void set(String key, Object value, boolean skipQueue) {
+        if(dataMaster.isSyncField(key)) {
+            if(skipQueue) {
+                dataMaster.setData(uuid, key, value);
+            } else {
+                dataQueue.add(new DataEntry(key, value));
+            }
+            syncData.put(key, value);
+        } else {
+            dataMaster.setData(uuid, key, value);
+        }
+    }
+
+    public void save() {
+        int i = 0;
+        DataEntry entry;
+        while((entry = dataQueue.poll()) != null) {
+            set(entry.key(), entry.value(), true);
+            i++;
+        }
+        Bukkit.getLogger().warning("Saving " + i + " entries for " + uuid);
     }
 
     public UUID getPlayer() {

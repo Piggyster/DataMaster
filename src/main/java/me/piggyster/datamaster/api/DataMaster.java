@@ -10,8 +10,7 @@ import me.piggyster.datamaster.api.storage.impl.MongoDBStorage;
 import me.piggyster.datamaster.api.util.DataMasterSettings;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 public class DataMaster {
 
@@ -41,6 +40,7 @@ public class DataMaster {
     protected final Gson gson = new GsonBuilder()
             .enableComplexMapKeySerialization()
             .create();
+    private final ScheduledExecutorService playerTask = Executors.newSingleThreadScheduledExecutor();
     private final Map<UUID, PlayerData> players = new ConcurrentHashMap<>();
     private final AbstractStorage storage;
 
@@ -49,6 +49,7 @@ public class DataMaster {
 
     private DataMaster(AbstractStorage storage) {
         this.storage = storage;
+        playerTask.scheduleAtFixedRate(() -> players.values().forEach(PlayerData::save), 0, 1, TimeUnit.MINUTES);
     }
 
     public void setSyncField(String path) {
@@ -136,7 +137,7 @@ public class DataMaster {
             PlayerData data = new PlayerData(uuid, this);
             if(!exists) {
                 System.out.println("Creating new player data...");
-                getDefaultValues().forEach(data::set);
+                getDefaultValues().forEach(data::set); //TODO default values are only set into the database if the player data has not existed before. They need to be set when a default value is missing instead
             } else {
                 System.out.println("Loading existing data...");
                 data.loadSyncData(syncValues).join();
@@ -147,11 +148,12 @@ public class DataMaster {
     }
 
     public void unloadPlayer(UUID uuid) {
-        players.remove(uuid);
+        players.remove(uuid).save();
     }
 
     public void shutdown() {
+        players.values().forEach(PlayerData::save);
         storage.close();
-
+        playerTask.shutdown();
     }
 }

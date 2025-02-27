@@ -3,3 +3,6 @@ author: Piggyster
 version: ${version}
 api-version: '1.20.4'
 main: me.piggyster.datamaster.plugin.DataMasterPlugin
+commands:
+  balance: {}
+  inventory: {}

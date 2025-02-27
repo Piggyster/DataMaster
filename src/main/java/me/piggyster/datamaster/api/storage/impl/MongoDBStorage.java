@@ -15,6 +15,7 @@ import me.piggyster.datamaster.api.storage.AbstractStorage;
 import org.bson.Document;
 import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -78,6 +79,7 @@ public class MongoDBStorage extends AbstractStorage {
     @Override
     public CompletableFuture<Void> setData(UUID uuid, String key, Object value) {
         return CompletableFuture.supplyAsync(() -> {
+            Bukkit.getLogger().warning("setting value for " + key + " as " + value);
             Bson update = Updates.set(key, value);
 
             UpdateResult result = collection.updateOne(
@@ -86,10 +88,9 @@ public class MongoDBStorage extends AbstractStorage {
                     new UpdateOptions().upsert(true)
             );
 
-            if(result.getModifiedCount() > 0) {
+            if (result.getModifiedCount() > 0) {
                 cache.put(key, new CacheEntry(value, 3));
             }
-            //update cache for async values
             return null;
         }, executor);
     }
