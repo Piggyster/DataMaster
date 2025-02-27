@@ -1,10 +1,13 @@
-package me.piggyster.datamaster;
+package me.piggyster.datamaster.api;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import me.piggyster.datamaster.api.storage.AbstractStorage;
+import me.piggyster.datamaster.api.storage.impl.MongoDBStorage;
+import me.piggyster.datamaster.api.util.DataMasterSettings;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -14,14 +17,25 @@ public class DataMaster {
 
     private static DataMaster master;
 
-    static {
-        master = new DataMaster(
-                new MongoDBStorage("mongodb://localhost:27017", "datamaster")
-        );
+    public static DataMaster get() {
+        if(master == null) {
+            throw new NullPointerException("DataMaster has not yet been initialized.");
+        }
+        return master;
     }
 
-    public static DataMaster get() {
-        return master;
+    public static void initialize(DataMasterSettings settings) {
+        if(master != null) {
+            throw new IllegalStateException("API is already initialized.");
+        }
+        AbstractStorage storage;
+        if(settings.getDatabaseType().equalsIgnoreCase("mongo")) {
+            storage = new MongoDBStorage(settings.getAddress(), settings.getDatabaseName());
+        } else {
+            System.out.println("An error has occured");
+            storage = null;
+        }
+        master = new DataMaster(storage);
     }
 
     protected final Gson gson = new GsonBuilder()
@@ -33,7 +47,7 @@ public class DataMaster {
     private final Map<String, Object> defaultValueRegistry = new ConcurrentHashMap<>();
     private final Set<String> syncValues = new HashSet<>();
 
-    public DataMaster(AbstractStorage storage) {
+    private DataMaster(AbstractStorage storage) {
         this.storage = storage;
     }
 
@@ -138,5 +152,6 @@ public class DataMaster {
 
     public void shutdown() {
         storage.close();
+
     }
 }

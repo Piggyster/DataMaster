@@ -1,6 +1,8 @@
 package me.piggyster.datamaster;
 
 import com.google.common.reflect.TypeToken;
+import me.piggyster.datamaster.api.DataMaster;
+import me.piggyster.datamaster.api.PlayerData;
 
 import java.util.HashMap;
 import java.util.Map;

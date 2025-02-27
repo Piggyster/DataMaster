@@ -1,4 +1,4 @@
-package me.piggyster.datamaster;
+package me.piggyster.datamaster.api.util;
 
 public class CacheEntry {
     private final Object value;

@@ -1,0 +1,5 @@
+database:
+  type: mongo #currently supported: mongo
+  address: 'mongodb://localhost:27017'
+  database: 'playerdata'
+

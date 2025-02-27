@@ -1,4 +1,4 @@
-package me.piggyster.datamaster;
+package me.piggyster.datamaster.api;
 
 import com.google.common.reflect.TypeToken;
 
