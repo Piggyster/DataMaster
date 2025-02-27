@@ -1,7 +1,6 @@
 package me.piggyster.datamaster.api;
 
 import com.google.common.reflect.TypeToken;
-import me.piggyster.datamaster.api.util.DataEntry;
 import org.bukkit.Bukkit;
 
 import java.util.*;
@@ -12,14 +11,14 @@ public class PlayerData {
 
     private final UUID uuid;
     private final Map<String, Object> syncData = new ConcurrentHashMap<>();
-    private final Queue<DataEntry> dataQueue;
+    private final Map<String, Object> dataQueue;
 
     private final DataMaster dataMaster;
 
     public PlayerData(UUID uuid, DataMaster dataMaster) {
         this.uuid = uuid;
         this.dataMaster = dataMaster;
-        dataQueue = new LinkedList<>();
+        dataQueue = new LinkedHashMap<>();
     }
 
     public CompletableFuture<Void> loadSyncData(Set<String> keys) {
@@ -98,7 +97,8 @@ public class PlayerData {
             if(skipQueue) {
                 dataMaster.setData(uuid, key, value);
             } else {
-                dataQueue.add(new DataEntry(key, value));
+                dataQueue.remove(key);
+                dataQueue.put(key, value);
             }
             syncData.put(key, value);
         } else {
@@ -107,10 +107,13 @@ public class PlayerData {
     }
 
     public void save() {
+        Iterator<Map.Entry<String, Object>> iterator = dataQueue.entrySet().iterator();
+
         int i = 0;
-        DataEntry entry;
-        while((entry = dataQueue.poll()) != null) {
-            set(entry.key(), entry.value(), true);
+        while(iterator.hasNext()) {
+            Map.Entry<String, Object> entry = iterator.next();
+            set(entry.getKey(), entry.getValue(), true);
+            iterator.remove();
             i++;
         }
         Bukkit.getLogger().warning("Saving " + i + " entries for " + uuid);
